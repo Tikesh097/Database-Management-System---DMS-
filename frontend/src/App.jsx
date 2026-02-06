@@ -5,6 +5,14 @@ import UserForm from './components/UserForm.jsx'
 import UserList from './components/UserList.jsx'
 import './App.css'
 
+// ✅ Axios instance (same pattern as DatabaseManager)
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
 function App() {
   const [currentDatabase, setCurrentDatabase] = useState(null)
   const [databases, setDatabases] = useState([])
@@ -26,7 +34,7 @@ function App() {
 
   const fetchDatabases = async () => {
     try {
-      const response = await axios.get('/api/databases')
+      const response = await api.get('/api/databases')
       setDatabases(response.data)
     } catch (err) {
       console.error('Error fetching databases:', err)
@@ -39,7 +47,9 @@ function App() {
     try {
       setLoading(true)
       setError(null)
-      const response = await axios.get(`/api/databases/${currentDatabase}/users`)
+      const response = await api.get(
+        `/api/databases/${currentDatabase}/users`
+      )
       setUsers(response.data)
     } catch (err) {
       setError('Failed to fetch users')
@@ -63,7 +73,10 @@ function App() {
 
     try {
       setError(null)
-      const response = await axios.post(`/api/databases/${currentDatabase}/users`, userData)
+      const response = await api.post(
+        `/api/databases/${currentDatabase}/users`,
+        userData
+      )
       setUsers([response.data, ...users])
       setSuccess('User created successfully')
       setTimeout(() => setSuccess(null), 3000)
@@ -80,8 +93,15 @@ function App() {
 
     try {
       setError(null)
-      const response = await axios.put(`/api/databases/${currentDatabase}/users/${id}`, userData)
-      setUsers(users.map(user => user.id === id ? response.data : user))
+      const response = await api.put(
+        `/api/databases/${currentDatabase}/users/${id}`,
+        userData
+      )
+      setUsers(
+        users.map(user =>
+          user.id === id ? response.data : user
+        )
+      )
       setEditingUser(null)
       setSuccess('User updated successfully')
       setTimeout(() => setSuccess(null), 3000)
@@ -102,7 +122,9 @@ function App() {
 
     try {
       setError(null)
-      await axios.delete(`/api/databases/${currentDatabase}/users/${id}`)
+      await api.delete(
+        `/api/databases/${currentDatabase}/users/${id}`
+      )
       setUsers(users.filter(user => user.id !== id))
       setSuccess('User deleted successfully')
       setTimeout(() => setSuccess(null), 3000)
@@ -155,7 +177,9 @@ function App() {
           <div className="content-grid">
             <section className="form-section">
               <h2>{editingUser ? 'Edit User' : 'Add New User'}</h2>
-              <p className="current-db-label">Database: <strong>{currentDatabase}</strong></p>
+              <p className="current-db-label">
+                Database: <strong>{currentDatabase}</strong>
+              </p>
               <UserForm
                 onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
                 editingUser={editingUser}
@@ -181,7 +205,9 @@ function App() {
         {!currentDatabase && (
           <div className="empty-state-main">
             <h2>Get Started</h2>
-            <p>Create a new database or select an existing one to begin managing users.</p>
+            <p>
+              Create a new database or select an existing one to begin managing users.
+            </p>
           </div>
         )}
       </main>

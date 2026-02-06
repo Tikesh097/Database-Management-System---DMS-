@@ -1,7 +1,22 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatabasesUpdate, setError, setSuccess }) {
+// ✅ Axios instance with env-based baseURL
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+function DatabaseManager({
+  databases,
+  currentDatabase,
+  onDatabaseChange,
+  onDatabasesUpdate,
+  setError,
+  setSuccess
+}) {
   const [newDbName, setNewDbName] = useState('')
   const [existingDbName, setExistingDbName] = useState('')
   const [sourceDb, setSourceDb] = useState('')
@@ -21,7 +36,10 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
 
     setCreating(true)
     try {
-      const response = await axios.post('/api/databases', { name: newDbName })
+      const response = await api.post('/api/databases', {
+        name: newDbName
+      })
+
       setSuccess(response.data.message)
       setNewDbName('')
       onDatabasesUpdate()
@@ -43,14 +61,18 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
 
     setChecking(true)
     try {
-      const response = await axios.get(`/api/databases/${existingDbName}/exists`)
+      const response = await api.get(
+        `/api/databases/${existingDbName}/exists`
+      )
 
       if (response.data.exists) {
         setSuccess(`Database '${existingDbName}' found and selected!`)
         onDatabaseChange(existingDbName)
         setExistingDbName('')
       } else {
-        setError(`Database '${existingDbName}' does not exist. Please create it first.`)
+        setError(
+          `Database '${existingDbName}' does not exist. Please create it first.`
+        )
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to check database')
@@ -76,12 +98,15 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
     setMigrationProgress('Exporting source database...')
 
     try {
-      const response = await axios.post('/api/databases/migrate', {
+      const response = await api.post('/api/databases/migrate', {
         sourceDatabase: sourceDb,
         targetDatabase: targetDb
       })
 
-      setSuccess(`Migration successful! Migrated ${response.data.tablesCount} tables from '${sourceDb}' to '${targetDb}'`)
+      setSuccess(
+        `Migration successful! Migrated ${response.data.tablesCount} tables from '${sourceDb}' to '${targetDb}'`
+      )
+
       setSourceDb('')
       setTargetDb('')
       setMigrationProgress(null)
@@ -110,11 +135,17 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
               placeholder="Enter database name"
               disabled={creating}
             />
-            <button type="submit" disabled={creating} className="btn btn-primary">
+            <button
+              type="submit"
+              disabled={creating}
+              className="btn btn-primary"
+            >
               {creating ? 'Creating...' : 'Create Database'}
             </button>
           </form>
-          <p className="help-text">Use alphanumeric characters and underscores only</p>
+          <p className="help-text">
+            Use alphanumeric characters and underscores only
+          </p>
         </div>
 
         {/* Select Existing Database */}
@@ -128,7 +159,11 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
               placeholder="Enter database name"
               disabled={checking}
             />
-            <button type="submit" disabled={checking} className="btn btn-secondary">
+            <button
+              type="submit"
+              disabled={checking}
+              className="btn btn-secondary"
+            >
               {checking ? 'Checking...' : 'Select Database'}
             </button>
           </form>
@@ -138,7 +173,10 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
         {/* Database Migration */}
         <div className="db-control-card full-width">
           <h3>Migrate Database</h3>
-          <form onSubmit={handleMigrateDatabase} className="db-form migration-form">
+          <form
+            onSubmit={handleMigrateDatabase}
+            className="db-form migration-form"
+          >
             <input
               type="text"
               value={sourceDb}
@@ -154,14 +192,24 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
               placeholder="Target database"
               disabled={migrating}
             />
-            <button type="submit" disabled={migrating} className="btn btn-migrate">
+            <button
+              type="submit"
+              disabled={migrating}
+              className="btn btn-migrate"
+            >
               {migrating ? 'Migrating...' : 'Migrate'}
             </button>
           </form>
+
           {migrationProgress && (
-            <div className="migration-progress">{migrationProgress}</div>
+            <div className="migration-progress">
+              {migrationProgress}
+            </div>
           )}
-          <p className="help-text">Copy all tables and data from source to target database</p>
+
+          <p className="help-text">
+            Copy all tables and data from source to target database
+          </p>
         </div>
       </div>
 
@@ -173,7 +221,9 @@ function DatabaseManager({ databases, currentDatabase, onDatabaseChange, onDatab
             {databases.map((db) => (
               <div
                 key={db.datname}
-                className={`db-card ${currentDatabase === db.datname ? 'active' : ''}`}
+                className={`db-card ${
+                  currentDatabase === db.datname ? 'active' : ''
+                }`}
                 onClick={() => onDatabaseChange(db.datname)}
               >
                 <div className="db-name">{db.datname}</div>
