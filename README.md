@@ -1,4 +1,4 @@
-# React + Vite + NeonDB Database Management System
+# Database Management System
 
 A full-stack database management application with complete CRUD operations, built with React (JSX), Vite, Node.js, Express, and NeonDB PostgreSQL.
 
